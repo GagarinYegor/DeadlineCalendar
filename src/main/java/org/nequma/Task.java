@@ -25,35 +25,24 @@ public class Task {
         return id;
     }
 
-    /*public Task() {
-        this.id = createID();
-        this.name = "";
-        this.startDate = new GregorianCalendar();
-        this.endDate = new GregorianCalendar();
-        this.definition = "";
-        this.isImportant = false;
-        this.isCompleted = false;
-        this.color = Color.blue;
-    }*/
-
     public String getID() {return this.id;}
 
     public String getName() {return this.name;}
     public void setName(String name) {this.name = name;}
 
     public Calendar getStartDate() {return this.startDate;}
-    public void setStartDate(Calendar startDate) {this.endDate = startDate;}
+    public void setStartDate(Calendar startDate) {this.startDate = startDate;}
 
     public Calendar getEndDate() {return this.endDate;}
     public void setEndDate(Calendar endDate) {this.endDate = endDate;}
 
     public String getDefinition() {return this.definition;}
-    public void setDefinition(String definition) {this.name = this.definition;}
+    public void setDefinition(String definition) {this.definition = definition;}
 
-    public boolean isImportant() {return this.isImportant;}
+    public boolean getImportant() {return this.isImportant;}
     public void setImportant(boolean isImportant) {this.isImportant = isImportant;}
 
-    public boolean isCompleted() {return this.isCompleted;}
+    public boolean getCompleted() {return this.isCompleted;}
     public void setCompleted(boolean isCompleted) {this.isCompleted = isCompleted;}
 
     public Color getColor() {return this.color;}
@@ -65,16 +54,6 @@ public class Task {
         return !this.endDate.after(weekLater);
     }
 
-    public Task(String name, Calendar startDate, Calendar endDate, String definition) {
-        this.id = createID();
-        this.name = name;
-        this.endDate = endDate;
-        this.definition = definition;
-        this.startDate = startDate;
-        this.isImportant = false;
-        this.color = Color.blue;
-        this.isCompleted = false;
-    }
     public Task(String name,
                 Calendar startDate,
                 Calendar endDate,

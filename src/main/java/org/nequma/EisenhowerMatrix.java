@@ -45,18 +45,17 @@ class EisenhowerMatrix extends JPanel {
         List<Task> quadrant4 = new ArrayList<>();
 
         for (Task task : tasks) {
-            if (task.isImportant() && task.isUrgent()) {
+            if (task.getImportant() && task.isUrgent()) {
                 quadrant1.add(task);
-            } else if (task.isImportant() && !task.isUrgent()) {
+            } else if (task.getImportant() && !task.isUrgent()) {
                 quadrant2.add(task);
-            } else if (!task.isImportant() && task.isUrgent()) {
+            } else if (!task.getImportant() && task.isUrgent()) {
                 quadrant3.add(task);
             } else {
                 quadrant4.add(task);
             }
         }
 
-        // Рисуем задачи в квадрантах
         drawTasksInQuadrant(g2d, quadrant1, 0, 0, width / 2, height / 2, Color.RED);
         drawTasksInQuadrant(g2d, quadrant2, width / 2, 0, width / 2, height / 2, Color.GREEN);
         drawTasksInQuadrant(g2d, quadrant3, 0, height / 2, width / 2, height / 2, Color.ORANGE);
@@ -74,16 +73,12 @@ class EisenhowerMatrix extends JPanel {
 
         int taskY = y + 40;
         for (Task task : tasks) {
-            String taskText = task.getDefinition();
-            if (taskText.length() > 20) {
-                taskText = taskText.substring(0, 17) + "...";
-            }
+            String taskDefinition = task.getDefinition();
 
-            // Добавляем индикатор дедлайна
             SimpleDateFormat sdf = new SimpleDateFormat("dd.MM");
             String dateStr = sdf.format(task.getEndDate().getTime());
 
-            g2d.drawString(taskText + " (" + dateStr + ")", x + 10, taskY);
+            g2d.drawString(taskDefinition + " до (" + dateStr + ")", x + 10, taskY);
             taskY += 20;
 
             if (taskY > y + height - 10) break;

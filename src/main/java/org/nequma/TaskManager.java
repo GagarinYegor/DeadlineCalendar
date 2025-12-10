@@ -12,10 +12,10 @@ public class TaskManager {
     private File activeFolder;
     private File completedFolder;
     private Gson gson;
-    private List <Task> activeTasks;
-    private List <Task> completedTasks;
+    private List <Task> activeTask;
+    private List <Task> completedTask;
 
-    private List<Task> fillTaskList(File folder) {
+    private List<Task> loadTaskList(File folder) {
         List<Task> tasksInFolder = new ArrayList<Task>();
         File[] files = folder.listFiles((dir, name) -> name.endsWith(".json"));
         for (File currentFile: files){
@@ -32,54 +32,53 @@ public class TaskManager {
         return tasksInFolder;
     }
 
-    public File getActiveFolder() {return this.activeFolder;}
-    public File getCompletedFolder() {return this.completedFolder;}
-
-    public void saveTask(Task task, File folder){
-        File file = new File(folder, task.getID() + ".json");
-        try (FileWriter writer = new FileWriter(file)) {
+    public void saveTask(Task task){
+        File currentFile = new File((task.getCompleted()? completedFolder:activeFolder), task.getID() + ".json");
+        try (FileWriter writer = new FileWriter(currentFile)) {
             gson.toJson(task, writer);
         } catch (IOException e) {
-            System.err.println("Error saving task: " + e.getMessage());
+            System.out.println("File with name \"" + currentFile.getName() + "\" can not be saved.");
+            System.out.println(e.getMessage());
         }
     }
 
-    public void addTask(Task task) {
-        this.activeTasks.add(task);
-        saveTask(task, activeFolder);
-    }
-
-    public void moveTask(Task task, File fromFolder, File toFolder) {
-        saveTask(task, toFolder);
-        new File(fromFolder, task.getID() + ".json").delete();
+    public void addActiveTask(Task task) {
+        this.activeTask.add(task);
+        saveTask(task);
     }
 
     public void completeTask(Task task){
-        task.setCompleted(true);
-        moveTask(task, activeFolder, completedFolder);
-        completedTasks.add(task);
-        activeTasks.remove(task);
+        if(task.getCompleted() == false){
+            task.setCompleted(true);
+            saveTask(task);
+            new File(activeFolder, task.getID() + ".json").delete();
+            completedTask.add(task);
+            activeTask.remove(task);
+        }
+    }
+
+    public void unCompleteTask(Task task){
+        if(task.getCompleted() == true){
+            task.setCompleted(false);
+            saveTask(task);
+            new File(completedFolder, task.getID() + ".json").delete();
+            activeTask.add(task);
+            completedTask.remove(task);
+        }
     }
 
     public void deleteTask(Task task){
-        new File(completedFolder, task.getID() + ".json").delete();
-        this.completedTasks.remove(task);
-    }
-
-    public void saveAll(){
-        for (Task task: this.activeTasks){
-            saveTask(task, this.activeFolder);
-        }
-        for (Task task: this.completedTasks){
-            saveTask(task, this.completedFolder);
+        if(task.getCompleted() == true){
+            new File(completedFolder, task.getID() + ".json").delete();
+            this.completedTask.remove(task);
         }
     }
 
-    public List<Task> getActiveTasks(){
-        return this.activeTasks;
+    public List<Task> getActiveTask(){
+        return this.activeTask;
     }
-    public List<Task> getCompletedTasks(){
-        return this.completedTasks;
+    public List<Task> getCompletedTask(){
+        return this.completedTask;
     }
 
     public TaskManager(String dataPath){
@@ -94,7 +93,7 @@ public class TaskManager {
         if (!activeFolder.exists()) activeFolder.mkdirs();
         if (!completedFolder.exists()) completedFolder.mkdirs();
 
-        activeTasks = fillTaskList(activeFolder);
-        completedTasks = fillTaskList(completedFolder);
+        activeTask = loadTaskList(activeFolder);
+        completedTask = loadTaskList(completedFolder);
     }
 }

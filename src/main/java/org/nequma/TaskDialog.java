@@ -65,7 +65,7 @@ class TaskDialog extends JDialog {
 
         importantCheckBox = new JCheckBox("Важная задача");
         if(task != null){
-            importantCheckBox.setSelected(task.isImportant());
+            importantCheckBox.setSelected(task.getImportant());
         }
         else {
             importantCheckBox.setSelected(false);
@@ -115,18 +115,18 @@ class TaskDialog extends JDialog {
                     colorChooser.getColor());
         }
         else {
-            task.setName(nameField.getText());
-            task.setDefinition(definitionField.getText());
-            task.setImportant(importantCheckBox.isSelected());
+            this.task.setName(nameField.getText());
+            this.task.setDefinition(definitionField.getText());
+            this.task.setImportant(importantCheckBox.isSelected());
 
             Calendar startCal = Calendar.getInstance();
             startCal.setTime((Date) startDateSpinner.getValue());
-            task.setStartDate(startCal);
+            this.task.setStartDate(startCal);
 
             Calendar endCal = Calendar.getInstance();
             endCal.setTime((Date) endDateSpinner.getValue());
-            task.setEndDate(endCal);
-            task.setColor(colorChooser.getColor());
+            this.task.setEndDate(endCal);
+            this.task.setColor(colorChooser.getColor());
         }
     }
 

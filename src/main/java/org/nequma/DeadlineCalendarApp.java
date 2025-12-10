@@ -7,30 +7,34 @@ import java.text.SimpleDateFormat;
 
 public class DeadlineCalendarApp extends JFrame {
     private TaskManager taskManager;
-    private DefaultListModel<String> activeTasksModel;
-    private DefaultListModel<String> completedTasksModel;
-    private JList<String> activeTasksList;
-    private JList<String> completedTasksList;
+    private DefaultListModel<String> activeTaskModel;
+    private DefaultListModel<String> completedTaskModel;
+    private JList<String> activeTaskList;
+    private JList<String> completedTaskList;
     private GanttChart ganttChart;
     private EisenhowerMatrix eisenhowerMatrix;
 
     public DeadlineCalendarApp(){
         taskManager = new TaskManager("data");
-        ganttChart = new GanttChart(taskManager.getActiveTasks());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setTitle("Календарь Дедлайнов");
         initComponents();
         loadTasks();
         setSize(800, 600);
-        setLocationRelativeTo(null);
         setVisible(true);
     }
 
     private void initComponents() {
-        activeTasksModel = new DefaultListModel<>();
-        completedTasksModel = new DefaultListModel<>();
+        activeTaskModel = new DefaultListModel<>();
+        completedTaskModel = new DefaultListModel<>();
 
-        ganttChart = new GanttChart(this.taskManager.getActiveTasks());
+        activeTaskList = new JList<>(activeTaskModel);
+        completedTaskList = new JList<>(completedTaskModel);
+
+        activeTaskList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        completedTaskList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        ganttChart = new GanttChart(this.taskManager.getActiveTask());
         eisenhowerMatrix = new EisenhowerMatrix();
 
         JSplitPane diagramsSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
@@ -60,13 +64,11 @@ public class DeadlineCalendarApp extends JFrame {
         JPanel panel = new JPanel(new GridLayout(2, 1, 5, 5));
         panel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        JPanel activePanel = createTaskListPanel("Активные задачи", activeTasksModel,
-                this::addTask, this::editActiveTask, this::completeTask, false);
-        activeTasksList = (JList<String>) ((JScrollPane) activePanel.getComponent(1)).getViewport().getView();
+        JPanel activePanel = createTaskListPanel("Активные задачи", activeTaskList,
+                this::addTask, this::editActiveTask, null, this::completeTask, null);
 
-        JPanel completedPanel = createTaskListPanel("Завершенные задачи", completedTasksModel,
-                null, null, this::deleteCompletedTask, true);
-        completedTasksList = (JList<String>) ((JScrollPane) completedPanel.getComponent(1)).getViewport().getView();
+        JPanel completedPanel = createTaskListPanel("Завершенные задачи", completedTaskList,
+                null, null, this::uncompleteTask, null, this::deleteCompletedTask);
 
         panel.add(activePanel);
         panel.add(completedPanel);
@@ -74,9 +76,12 @@ public class DeadlineCalendarApp extends JFrame {
         return panel;
     }
 
-    private JPanel createTaskListPanel(String title, DefaultListModel<String> model,
-                                       Runnable addAction, Runnable editAction, Runnable deleteAction,
-                                       boolean isCompleted) {
+    private JPanel createTaskListPanel(String title, JList<String> taskList,
+                                       Runnable addAction,
+                                       Runnable editAction,
+                                       Runnable activateAction,
+                                       Runnable deactivateAction,
+                                       Runnable deleteAction) {
         JPanel panel = new JPanel(new BorderLayout(5, 5));
         panel.setBorder(new LineBorder(Color.GRAY, 1));
 
@@ -84,8 +89,6 @@ public class DeadlineCalendarApp extends JFrame {
         titleLabel.setFont(new Font("Arial", Font.BOLD, 14));
         panel.add(titleLabel, BorderLayout.NORTH);
 
-        JList<String> taskList = new JList<>(model);
-        taskList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         JScrollPane scrollPane = new JScrollPane(taskList);
         panel.add(scrollPane, BorderLayout.CENTER);
 
@@ -103,15 +106,56 @@ public class DeadlineCalendarApp extends JFrame {
                 if (taskList.getSelectedIndex() != -1) {
                     editAction.run();
                 }
+                else {
+                    JOptionPane.showMessageDialog(this,
+                            "Выберите задачу для редактирования",
+                            "Внимание",
+                            JOptionPane.WARNING_MESSAGE);
+                }
             });
             buttonPanel.add(editButton);
         }
 
+        if (activateAction != null){
+            JButton activateButton = new JButton("Сделать активной");
+            activateButton.addActionListener(e -> {
+                if (taskList.getSelectedIndex() != -1) {
+                    activateAction.run();
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "Выберите задачу для установки активной",
+                            "Внимание",
+                            JOptionPane.WARNING_MESSAGE);
+                }
+            });
+            buttonPanel.add(activateButton);
+        }
+
+        if(deactivateAction != null){
+            JButton deactivateButton = new JButton("Завершить");
+            deactivateButton.addActionListener(e -> {
+                if (taskList.getSelectedIndex() != -1) {
+                    deactivateAction.run();
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "Выберите задачу для завершения",
+                            "Внимание",
+                            JOptionPane.WARNING_MESSAGE);
+                }
+            });
+            buttonPanel.add(deactivateButton);
+        }
+
         if (deleteAction != null) {
-            JButton deleteButton = new JButton(isCompleted ? "Удалить" : "Завершить");
+            JButton deleteButton = new JButton("Удалить");
             deleteButton.addActionListener(e -> {
                 if (taskList.getSelectedIndex() != -1) {
                     deleteAction.run();
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "Выберите задачу для удаления",
+                            "Внимание",
+                            JOptionPane.WARNING_MESSAGE);
                 }
             });
             buttonPanel.add(deleteButton);
@@ -123,23 +167,28 @@ public class DeadlineCalendarApp extends JFrame {
     }
 
     private void loadTasks() {
-        activeTasksModel.clear();
-        completedTasksModel.clear();
+        activeTaskModel.clear();
+        completedTaskModel.clear();
 
-        for (Task task : taskManager.getActiveTasks()) {
-            activeTasksModel.addElement(formatTaskString(task));
+        for (Task task : taskManager.getActiveTask()) {
+            activeTaskModel.addElement(formatTaskString(task));
         }
 
-        for (Task task : taskManager.getCompletedTasks()) {
-            completedTasksModel.addElement(formatTaskString(task));
+        for (Task task : taskManager.getCompletedTask()) {
+            completedTaskModel.addElement(formatTaskString(task));
         }
+
+        activeTaskList.setModel(activeTaskModel);
+        completedTaskList.setModel(completedTaskModel);
+
         updateDiagrams();
     }
 
     private String formatTaskString(Task task) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
-        String status = task.isImportant() ? "* " : "";
-        return status + task.getName() + " (до " + sdf.format(task.getEndDate().getTime()) + ")";
+        String status = task.getImportant() ? "❗ " : "";
+        String taskName = task.getName() != null ? task.getName() : "Без названия";
+        return status + taskName + " (до " + sdf.format(task.getEndDate().getTime()) + ")";
     }
 
     private void addTask() {
@@ -148,54 +197,87 @@ public class DeadlineCalendarApp extends JFrame {
 
         if (dialog.isConfirmed()) {
             Task task = dialog.getTask();
-            taskManager.addTask(task);
-            activeTasksModel.addElement(formatTaskString(task));
+            taskManager.addActiveTask(task);
+            activeTaskModel.addElement(formatTaskString(task));
             updateDiagrams();
+            activeTaskList.clearSelection();
         }
     }
 
     private void editActiveTask() {
-        int index = activeTasksList.getSelectedIndex();
-        if (index != -1) {
-            Task task = taskManager.getActiveTasks().get(index);
+        int index = activeTaskList.getSelectedIndex();
+        if (index >= 0 && index < taskManager.getActiveTask().size()) {
+            Task task = taskManager.getActiveTask().get(index);
             TaskDialog dialog = new TaskDialog(this, task);
             dialog.setVisible(true);
 
             if (dialog.isConfirmed()) {
-                activeTasksModel.set(index, formatTaskString(task));
-                taskManager.saveTask(task, taskManager.getActiveFolder());
+                activeTaskModel.set(index, formatTaskString(task));
+                taskManager.saveTask(task);
                 updateDiagrams();
+                activeTaskList.clearSelection();
             }
         }
     }
 
     private void completeTask() {
-        int index = activeTasksList.getSelectedIndex();
-        if (index != -1) {
-            Task task = taskManager.getActiveTasks().get(index);
+        int index = activeTaskList.getSelectedIndex();
+        if (index >= 0 && index < taskManager.getActiveTask().size()) {
+            Task task = taskManager.getActiveTask().get(index);
             taskManager.completeTask(task);
-            activeTasksModel.remove(index);
-            completedTasksModel.addElement(formatTaskString(task));
+            activeTaskModel.remove(index);
+            completedTaskModel.addElement(formatTaskString(task));
             updateDiagrams();
+            activeTaskList.clearSelection();
+        }
+    }
+
+    private void uncompleteTask() {
+        int index = completedTaskList.getSelectedIndex();
+        if (index >= 0 && index < taskManager.getCompletedTask().size()) {
+            Task task = taskManager.getCompletedTask().get(index);
+            taskManager.unCompleteTask(task);
+            completedTaskModel.remove(index);
+            activeTaskModel.addElement(formatTaskString(task));
+            updateDiagrams();
+            completedTaskList.clearSelection();
         }
     }
 
     private void deleteCompletedTask() {
-        int index = completedTasksList.getSelectedIndex();
-        if (index != -1) {
-            Task task = taskManager.getCompletedTasks().get(index);
-            taskManager.deleteTask(task);
-            completedTasksModel.remove(index);
+        int index = completedTaskList.getSelectedIndex();
+        if (index >= 0 && index < taskManager.getCompletedTask().size()) {
+            int confirm = JOptionPane.showConfirmDialog(this,
+                    "Вы уверены, что хотите удалить задачу?",
+                    "Подтверждение удаления",
+                    JOptionPane.YES_NO_OPTION);
+
+            if (confirm == JOptionPane.YES_OPTION) {
+                Task task = taskManager.getCompletedTask().get(index);
+                taskManager.deleteTask(task);
+                completedTaskModel.remove(index);
+                completedTaskList.clearSelection();
+            }
         }
     }
 
     private void updateDiagrams() {
-        ganttChart.setTasks(taskManager.getActiveTasks());
-        eisenhowerMatrix.setTasks(taskManager.getActiveTasks());
+        ganttChart.setTasks(taskManager.getActiveTask());
+        eisenhowerMatrix.setTasks(taskManager.getActiveTask());
+        ganttChart.repaint();
+        eisenhowerMatrix.repaint();
     }
 
-    public static void main(String[] args) {
-        DeadlineCalendarApp app = new DeadlineCalendarApp();
-        app.setVisible(true);
+    public static void main() {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            DeadlineCalendarApp app = new DeadlineCalendarApp();
+            app.setVisible(true);
+        });
     }
 }

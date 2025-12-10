@@ -17,9 +17,8 @@ public class GanttChart extends JPanel implements AdjustmentListener{
 
     public GanttChart(List<Task> tasks) {
         this.tasks = tasks;
-        setPreferredSize(new Dimension(DAY_WIDTH * DAYS_TO_SHOW, 400));
-        horizontalScroller = new JScrollBar(JScrollBar.HORIZONTAL, 0, 20, 0, DAYS_TO_SHOW*DAY_WIDTH);
-        verticalScroller = new JScrollBar(JScrollBar.VERTICAL, 0, 20, 0, tasks.size()*TASK_HEIGHT);
+        horizontalScroller = new JScrollBar(JScrollBar.HORIZONTAL, 0, DAY_WIDTH, 0, DAYS_TO_SHOW*DAY_WIDTH);
+        verticalScroller = new JScrollBar(JScrollBar.VERTICAL, 0, TASK_HEIGHT, 0, tasks.size()*TASK_HEIGHT+TASK_HEIGHT);
         horizontalScroller.addAdjustmentListener(this);
         verticalScroller.addAdjustmentListener(this);
     }
@@ -44,21 +43,18 @@ public class GanttChart extends JPanel implements AdjustmentListener{
 
     protected void paintComponent(Graphics g){
         super.paintComponent(g);
-        //setBackground(new Color(35, 35, 35, 75));
         setBackground(Color.white);
 
         if(tasks.isEmpty()){return;}
 
         Graphics2D g2d = (Graphics2D) g;
-        //g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         int startDay = horizontalScroller.getValue() / 10;
         int startTask = verticalScroller.getValue() / 10;
         int visibleDays = DAYS_TO_SHOW;
 
         drawGrid(g2d, startDay, startTask, visibleDays);
-
-        // Рисуем задачи
         drawTasks(g2d, startDay, startTask);
     }
 
@@ -78,7 +74,6 @@ public class GanttChart extends JPanel implements AdjustmentListener{
             String dateStr = sdf.format(cal.getTime());
             g2d.drawString(dateStr, x + 5, 15);
 
-            // Отмечаем сегодняшний день
             Calendar today = Calendar.getInstance();
             if (cal.get(Calendar.YEAR) == today.get(Calendar.YEAR) &&
                     cal.get(Calendar.DAY_OF_YEAR) == today.get(Calendar.DAY_OF_YEAR)) {
@@ -99,19 +94,18 @@ public class GanttChart extends JPanel implements AdjustmentListener{
         Calendar startDate = Calendar.getInstance();
         startDate.add(Calendar.DAY_OF_MONTH, startDay);
 
-        int y = 40;
+        int y = TASK_HEIGHT - TASK_HEIGHT*startTask;
         for (Task task : tasks) {
-            // Определяем позицию задачи
             int startX = getDayOffset(task.getStartDate(), startDay);
             int endX = getDayOffset(task.getEndDate(), startDay);
-            int taskWidth = Math.max((endX - startX) * DAY_WIDTH, 5);
+            int taskWidth = Math.max((endX - startX + 1) * DAY_WIDTH, 5);
 
             g2d.setColor(task.getColor());
-            g2d.fillRect(startX * DAY_WIDTH, y - startTask*TASK_HEIGHT, taskWidth, TASK_HEIGHT);
+            g2d.fillRect(startX * DAY_WIDTH, y, taskWidth, TASK_HEIGHT);
             g2d.setColor(Color.BLACK);
-            g2d.drawString(task.getName(), startX * DAY_WIDTH + 5, y + 20);
+            g2d.drawString(task.getName(), startX * DAY_WIDTH, y + TASK_HEIGHT/2);
 
-            y += 40;
+            y += TASK_HEIGHT;
         }
     }
 
