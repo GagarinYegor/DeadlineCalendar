@@ -19,7 +19,7 @@ public class DeadlineCalendarApp extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setTitle("Календарь Дедлайнов");
         initComponents();
-        loadTasks();
+        loadTask();
         setSize(800, 600);
         setVisible(true);
     }
@@ -65,7 +65,7 @@ public class DeadlineCalendarApp extends JFrame {
         panel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         JPanel activePanel = createTaskListPanel("Активные задачи", activeTaskList,
-                this::addTask, this::editActiveTask, null, this::completeTask, null);
+                this::addTask, this::editTask, null, this::completeTask, null);
 
         JPanel completedPanel = createTaskListPanel("Завершенные задачи", completedTaskList,
                 null, null, this::uncompleteTask, null, this::deleteCompletedTask);
@@ -166,16 +166,16 @@ public class DeadlineCalendarApp extends JFrame {
         return panel;
     }
 
-    private void loadTasks() {
+    private void loadTask() {
         activeTaskModel.clear();
         completedTaskModel.clear();
 
         for (Task task : taskManager.getActiveTask()) {
-            activeTaskModel.addElement(formatTaskString(task));
+            activeTaskModel.addElement(formatTaskToString(task));
         }
 
         for (Task task : taskManager.getCompletedTask()) {
-            completedTaskModel.addElement(formatTaskString(task));
+            completedTaskModel.addElement(formatTaskToString(task));
         }
 
         activeTaskList.setModel(activeTaskModel);
@@ -184,7 +184,7 @@ public class DeadlineCalendarApp extends JFrame {
         updateDiagrams();
     }
 
-    private String formatTaskString(Task task) {
+    private String formatTaskToString(Task task) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
         String status = task.getImportant() ? "❗ " : "";
         String taskName = task.getName() != null ? task.getName() : "Без названия";
@@ -198,13 +198,13 @@ public class DeadlineCalendarApp extends JFrame {
         if (dialog.isConfirmed()) {
             Task task = dialog.getTask();
             taskManager.addActiveTask(task);
-            activeTaskModel.addElement(formatTaskString(task));
+            activeTaskModel.addElement(formatTaskToString(task));
             updateDiagrams();
             activeTaskList.clearSelection();
         }
     }
 
-    private void editActiveTask() {
+    private void editTask() {
         int index = activeTaskList.getSelectedIndex();
         if (index >= 0 && index < taskManager.getActiveTask().size()) {
             Task task = taskManager.getActiveTask().get(index);
@@ -212,7 +212,7 @@ public class DeadlineCalendarApp extends JFrame {
             dialog.setVisible(true);
 
             if (dialog.isConfirmed()) {
-                activeTaskModel.set(index, formatTaskString(task));
+                activeTaskModel.set(index, formatTaskToString(task));
                 taskManager.saveTask(task);
                 updateDiagrams();
                 activeTaskList.clearSelection();
@@ -226,7 +226,7 @@ public class DeadlineCalendarApp extends JFrame {
             Task task = taskManager.getActiveTask().get(index);
             taskManager.completeTask(task);
             activeTaskModel.remove(index);
-            completedTaskModel.addElement(formatTaskString(task));
+            completedTaskModel.addElement(formatTaskToString(task));
             updateDiagrams();
             activeTaskList.clearSelection();
         }
@@ -238,7 +238,7 @@ public class DeadlineCalendarApp extends JFrame {
             Task task = taskManager.getCompletedTask().get(index);
             taskManager.unCompleteTask(task);
             completedTaskModel.remove(index);
-            activeTaskModel.addElement(formatTaskString(task));
+            activeTaskModel.addElement(formatTaskToString(task));
             updateDiagrams();
             completedTaskList.clearSelection();
         }

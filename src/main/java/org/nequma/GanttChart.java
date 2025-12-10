@@ -50,8 +50,8 @@ public class GanttChart extends JPanel implements AdjustmentListener{
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        int startDay = horizontalScroller.getValue() / 10;
-        int startTask = verticalScroller.getValue() / 10;
+        int startDay = horizontalScroller.getValue() / DAY_WIDTH;
+        int startTask = verticalScroller.getValue() / TASK_HEIGHT;
         int visibleDays = DAYS_TO_SHOW;
 
         drawGrid(g2d, startDay, startTask, visibleDays);
@@ -103,7 +103,7 @@ public class GanttChart extends JPanel implements AdjustmentListener{
             g2d.setColor(task.getColor());
             g2d.fillRect(startX * DAY_WIDTH, y, taskWidth, TASK_HEIGHT);
             g2d.setColor(Color.BLACK);
-            g2d.drawString(task.getName(), startX * DAY_WIDTH, y + TASK_HEIGHT/2);
+            g2d.drawString(task.getName(), startX * DAY_WIDTH + 5, y + TASK_HEIGHT/2);
 
             y += TASK_HEIGHT;
         }
