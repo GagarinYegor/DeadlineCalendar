@@ -13,18 +13,6 @@ public class Task {
     private boolean isCompleted;
     private Color color;
 
-    private String createID(){
-        String id = "";
-        Calendar today = new GregorianCalendar();
-        id += today.get(Calendar.YEAR);
-        id += today.get(Calendar.DAY_OF_YEAR);
-        id += today.get(Calendar.HOUR);
-        id += today.get(Calendar.MINUTE);
-        id += today.get(Calendar.SECOND);
-        id += today.get(Calendar.MILLISECOND);
-        return id;
-    }
-
     public String getID() {return this.id;}
 
     public String getName() {return this.name;}
@@ -52,6 +40,18 @@ public class Task {
         Calendar weekLater = Calendar.getInstance();
         weekLater.add(Calendar.DATE, 7);
         return !this.endDate.after(weekLater);
+    }
+
+    private String createID(){
+        String id = "";
+        Calendar today = new GregorianCalendar();
+        id += today.get(Calendar.YEAR);
+        id += today.get(Calendar.DAY_OF_YEAR);
+        id += today.get(Calendar.HOUR);
+        id += today.get(Calendar.MINUTE);
+        id += today.get(Calendar.SECOND);
+        id += today.get(Calendar.MILLISECOND);
+        return id;
     }
 
     public Task(String name,

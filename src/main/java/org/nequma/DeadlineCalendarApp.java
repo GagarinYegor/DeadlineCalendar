@@ -21,6 +21,9 @@ public class DeadlineCalendarApp extends JFrame {
         initComponents();
         loadTask();
         setSize(800, 600);
+        Image icon = Toolkit.getDefaultToolkit().getImage("src/main/java/org/nequma/icon.png");
+        setPreferredSize(new Dimension(800, 600));
+        setIconImage(icon);
         setVisible(true);
     }
 
@@ -53,16 +56,8 @@ public class DeadlineCalendarApp extends JFrame {
         diagramsSplitPane.setBottomComponent(eisenhowerContainer);
         diagramsSplitPane.setDividerLocation(300);
 
-        JPanel tasksPanel = createTasksPanel();
-
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tasksPanel, diagramsSplitPane);
-        splitPane.setDividerLocation(353);
-        add(splitPane);
-    }
-
-    private JPanel createTasksPanel() {
-        JPanel panel = new JPanel(new GridLayout(2, 1, 5, 5));
-        panel.setBorder(new EmptyBorder(10, 10, 10, 10));
+        JPanel tasksPanel = new JPanel(new GridLayout(2, 1, 5, 5));
+        tasksPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
         JPanel activePanel = createTaskListPanel("Активные задачи", activeTaskList,
                 this::addTask, this::editTask, null, this::completeTask, null);
@@ -70,10 +65,12 @@ public class DeadlineCalendarApp extends JFrame {
         JPanel completedPanel = createTaskListPanel("Завершенные задачи", completedTaskList,
                 null, null, this::uncompleteTask, null, this::deleteCompletedTask);
 
-        panel.add(activePanel);
-        panel.add(completedPanel);
+        tasksPanel.add(activePanel);
+        tasksPanel.add(completedPanel);
 
-        return panel;
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tasksPanel, diagramsSplitPane);
+        splitPane.setDividerLocation(310);
+        add(splitPane);
     }
 
     private JPanel createTaskListPanel(String title, JList<String> taskList,
@@ -195,7 +192,7 @@ public class DeadlineCalendarApp extends JFrame {
         TaskDialog dialog = new TaskDialog(this, null);
         dialog.setVisible(true);
 
-        if (dialog.isConfirmed()) {
+        if (dialog.getConfirmed()) {
             Task task = dialog.getTask();
             taskManager.addActiveTask(task);
             activeTaskModel.addElement(formatTaskToString(task));
@@ -211,7 +208,7 @@ public class DeadlineCalendarApp extends JFrame {
             TaskDialog dialog = new TaskDialog(this, task);
             dialog.setVisible(true);
 
-            if (dialog.isConfirmed()) {
+            if (dialog.getConfirmed()) {
                 activeTaskModel.set(index, formatTaskToString(task));
                 taskManager.saveTask(task);
                 updateDiagrams();
@@ -262,8 +259,8 @@ public class DeadlineCalendarApp extends JFrame {
     }
 
     private void updateDiagrams() {
-        ganttChart.setTasks(taskManager.getActiveTask());
-        eisenhowerMatrix.setTasks(taskManager.getActiveTask());
+        ganttChart.setTaskList(taskManager.getActiveTask());
+        eisenhowerMatrix.setTaskList(taskManager.getActiveTask());
         ganttChart.repaint();
         eisenhowerMatrix.repaint();
     }

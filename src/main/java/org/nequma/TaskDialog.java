@@ -11,7 +11,7 @@ class TaskDialog extends JDialog {
     private Task task;
     private boolean confirmed = false;
     private JTextField nameField;
-    private JTextArea definitionField;
+    private JTextField definitionField;
     private JCheckBox importantCheckBox;
     private JSpinner startDateSpinner;
     private JSpinner endDateSpinner;
@@ -36,7 +36,7 @@ class TaskDialog extends JDialog {
         inputPanel.add(nameField);
 
         inputPanel.add(new JLabel("Описание:"));
-        definitionField = new JTextArea();
+        definitionField = new JTextField();
         if (task != null) {definitionField.setText(task.getDefinition());}
         inputPanel.add(new JScrollPane(definitionField));
 
@@ -134,7 +134,7 @@ class TaskDialog extends JDialog {
         return task;
     }
 
-    public boolean isConfirmed() {
+    public boolean getConfirmed() {
         return confirmed;
     }
 }
